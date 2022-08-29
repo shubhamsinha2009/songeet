@@ -7,10 +7,8 @@ import 'package:songeet/services/audio_manager.dart';
 import 'package:songeet/services/data_manager.dart';
 import 'package:songeet/style/appColors.dart';
 
-import 'package:songeet/ui/search.dart';
 import 'package:songeet/ui/userlikedsong.dart';
 import 'package:songeet/ui/userPlaylistsPage.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -33,9 +31,17 @@ class _SettingsPageState extends State<SettingsPage> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          alignment: Alignment.center,
+          color: accent,
+          icon: const Icon(MdiIcons.closeThick),
+        ),
+        // elevation: 0,
       ),
-      body: SingleChildScrollView(child: SettingsCards()),
+      body: const SingleChildScrollView(child: SettingsCards()),
     );
   }
 }
@@ -168,106 +174,6 @@ class SettingsCards extends StatelessWidget {
           },
         ),
         SettingBar(
-          "Language",
-          MdiIcons.translate,
-          () => {
-            showModalBottomSheet(
-              isDismissible: true,
-              backgroundColor: Colors.transparent,
-              context: context,
-              builder: (BuildContext context) {
-                final codes = <String, String>{
-                  'English': 'en',
-                  'French': 'fr',
-                  'Georgian': 'ka',
-                  'Chinese': 'zh',
-                  'Dutch': 'nl',
-                  'German': 'de',
-                  'Indonesian': 'id',
-                  'Italian': 'it',
-                  'Polish': 'pl',
-                  'Portuguese': 'pt',
-                  'Spanish': 'es',
-                  'Turkish': 'tr',
-                  'Ukrainian': 'uk',
-                };
-
-                final availableLanguages = <String>[
-                  'English',
-                  'French',
-                  'Georgian',
-                  'Chinese',
-                  'Dutch',
-                  'German',
-                  'Indonesian',
-                  'Italian',
-                  'Polish',
-                  'Portuguese',
-                  'Spanish',
-                  'Turkish',
-                  'Ukrainian',
-                ];
-                return Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      border: Border.all(
-                        color: accent,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(20),
-                      ),
-                    ),
-                    width: MediaQuery.of(context).copyWith().size.width * 0.90,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: availableLanguages.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Card(
-                            color: bgLight,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 2.3,
-                            child: ListTile(
-                              title: Text(
-                                availableLanguages[index],
-                                style: TextStyle(color: accent),
-                              ),
-                              onTap: () {
-                                addOrUpdateData(
-                                  'settings',
-                                  'language',
-                                  availableLanguages[index],
-                                );
-
-                                Fluttertoast.showToast(
-                                  backgroundColor: accent,
-                                  textColor: accent != const Color(0xFFFFFFFF)
-                                      ? Colors.white
-                                      : Colors.black,
-                                  msg: "Language has been changed",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  fontSize: 14,
-                                );
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          },
-        ),
-        SettingBar(
           "Clear cache",
           MdiIcons.broom,
           () => {
@@ -286,9 +192,8 @@ class SettingsCards extends StatelessWidget {
         ),
         SettingBar(
           "Clear Search History",
-          MdiIcons.history,
+          MdiIcons.selectSearch,
           () => {
-            searchHistory = [],
             deleteData('user', 'searchHistory'),
             Fluttertoast.showToast(
               backgroundColor: accent,
@@ -296,6 +201,23 @@ class SettingsCards extends StatelessWidget {
                   ? Colors.white
                   : Colors.black,
               msg: "Search history cleared!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              fontSize: 14,
+            ),
+          },
+        ),
+        SettingBar(
+          "Clear Song History",
+          MdiIcons.history,
+          () => {
+            deleteData('user', 'songHistory'),
+            Fluttertoast.showToast(
+              backgroundColor: accent,
+              textColor: accent != const Color(0xFFFFFFFF)
+                  ? Colors.white
+                  : Colors.black,
+              msg: "Song history cleared!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               fontSize: 14,

@@ -59,7 +59,7 @@ class AudioAppState extends State<AudioApp> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
+        // elevation: 0,
         centerTitle: true,
         title: Text(
           "Now playing",

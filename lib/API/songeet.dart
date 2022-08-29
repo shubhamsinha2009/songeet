@@ -17,7 +17,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 final yt = YoutubeExplode();
-final OnAudioQuery _audioQuery = OnAudioQuery();
+//final OnAudioQuery _audioQuery = OnAudioQuery();
 
 final random = Random();
 
@@ -28,9 +28,6 @@ List userLikedSongsList = Hive.box('user').get('likedSongs', defaultValue: []);
 List suggestedPlaylists = [];
 List activePlaylist = [];
 List<SongModel> localSongs = [];
-
-final lyrics = ValueNotifier<String>('null');
-String _lastLyricsUrl = '';
 
 int id = 0;
 
@@ -56,8 +53,8 @@ Future<List> fetchSongsList(String searchQuery) async {
 }
 
 Future get20Music(dynamic playlistid) async {
-  final List playlistSongs =
-      await getData('cache', 'playlist10Songs$playlistid') ?? [];
+  final List playlistSongs = [];
+  //   await getData('cache', 'playlist10Songs$playlistid') ?? [];
   if (playlistSongs.isEmpty) {
     var index = 0;
     await for (final song in yt.playlists.getVideos(playlistid).take(20)) {
@@ -78,7 +75,7 @@ Future get20Music(dynamic playlistid) async {
       index += 1;
     }
 
-    addOrUpdateData('cache', 'playlist10Songs$playlistid', playlistSongs);
+    //  addOrUpdateData('cache', 'playlist10Songs$playlistid', playlistSongs);
   }
 
   return playlistSongs;
@@ -211,8 +208,8 @@ Future<Map> getRandomSong() async {
 }
 
 Future getSongsFromPlaylist(dynamic playlistid) async {
-  final List playlistSongs =
-      await getData('cache', 'playlistSongs$playlistid') ?? [];
+  final List playlistSongs = [];
+  //   await getData('cache', 'playlistSongs$playlistid') ?? [];
   if (playlistSongs.isEmpty) {
     var index = 0;
     await for (final song in yt.playlists.getVideos(playlistid)) {
@@ -232,7 +229,7 @@ Future getSongsFromPlaylist(dynamic playlistid) async {
       );
       index += 1;
     }
-    addOrUpdateData('cache', 'playlistSongs$playlistid', playlistSongs);
+    // addOrUpdateData('cache', 'playlistSongs$playlistid', playlistSongs);
   }
 
   return playlistSongs;

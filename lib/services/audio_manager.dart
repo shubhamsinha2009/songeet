@@ -32,10 +32,10 @@ final prefferedFileExtension = ValueNotifier<String>(
   Hive.box('settings').get('audioFileType', defaultValue: 'mp3') as String,
 );
 final playNextSongAutomatically = ValueNotifier<bool>(
-  Hive.box('settings').get('playNextSongAutomatically', defaultValue: false),
+  Hive.box('settings').get('playNextSongAutomatically', defaultValue: true),
 );
 final sponsorBlockSupport = ValueNotifier<bool>(
-  Hive.box('settings').get('sponsorBlockSupport', defaultValue: false),
+  Hive.box('settings').get('sponsorBlockSupport', defaultValue: true),
 );
 
 bool get hasNext => activePlaylist.isEmpty
@@ -82,11 +82,9 @@ Future<void> playSong(Map song) async {
       await MyAudioHandler().addQueueItem(mapToMediaItem(song, songUrl));
     }
   }
-  play();
 
   List songHistory = Hive.box('user').get('songHistory', defaultValue: []);
-
-  songHistory.remove(song);
+  songHistory.removeWhere((element) => song['ytid'] == element['ytid']);
   songHistory.insert(0, song);
   addOrUpdateData('user', 'songHistory', songHistory);
 }

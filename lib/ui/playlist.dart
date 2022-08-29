@@ -91,7 +91,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
           ),
           onPressed: () => Navigator.pop(context, false),
         ),
-        elevation: 0,
+        // elevation: 0,
       ),
       body: SingleChildScrollView(
         child: widget.playlist != null

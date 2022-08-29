@@ -1,17 +1,19 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:just_audio/just_audio.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:songeet/customWidgets/custom_animated_bottom_bar.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+
 import 'package:songeet/services/audio_manager.dart';
 import 'package:songeet/style/appColors.dart';
 import 'package:songeet/ui/home.dart';
 import 'package:songeet/ui/player.dart';
-import 'package:songeet/ui/playlists.dart';
-import 'package:songeet/ui/search.dart';
-import 'package:songeet/ui/settings.dart';
+
+import '../API/songeet.dart';
 
 class Songeet extends StatefulWidget {
   const Songeet({Key? key}) : super(key: key);
@@ -22,81 +24,116 @@ class Songeet extends StatefulWidget {
   }
 }
 
-ValueNotifier<int> activeTab = ValueNotifier<int>(0);
+// ValueNotifier<int> activeTab = ValueNotifier<int>(0);
 
 class AppState extends State<Songeet> {
+  late StreamSubscription _intentDataStreamSubscription;
+  StreamSubscription? autoStartSubscription;
+  bool isSongChanged = false;
+
   @override
   void initState() {
     super.initState();
-    // checkAppUpdates().then(
-    //   (value) => {
-    //     if (value == true)
-    //       {
-    //         Fluttertoast.showToast(
-    //           msg: '${AppLocalizations.of(context)!.appUpdateIsAvailable}!',
-    //           toastLength: Toast.LENGTH_SHORT,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: accent,
-    //           textColor: accent != const Color(0xFFFFFFFF)
-    //               ? Colors.white
-    //               : Colors.black,
-    //           fontSize: 14,
-    //         )
-    //       }
-    //   },
-    // );
+
+    autoStartSubscription = audioPlayer.playerStateStream.listen((event) {
+      if (event.processingState == ProcessingState.ready &&
+          !(event.playing) &&
+          isSongChanged == true) {
+        play();
+        isSongChanged = false;
+      }
+    });
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStream().listen((String value) {
+      print(value);
+      if (value.contains("https://youtu.be/")) {
+        value = value.replaceAll("https://youtu.be/", "");
+        getSongDetails(1, value).then((value) {
+          playSong(value);
+        });
+      } else if (value.contains("https://youtube.com/playlist?list=")) {
+        // value = value.replaceAll("https://youtube.com/playlist?list=", "");
+        addUserPlaylist(value);
+      }
+    }, onError: (err) {
+      //print("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((String? value) {
+      if (value != null) {
+        print(value);
+        if (value.contains("https://youtu.be/")) {
+          value = value.replaceAll("https://youtu.be/", "");
+          getSongDetails(1, value).then((value) {
+            playSong(value);
+          });
+        } else if (value.contains("https://youtube.com/playlist?list=")) {
+          //value = value.replaceAll("https://youtube.com/playlist?list=", "");
+          addUserPlaylist(value);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _intentDataStreamSubscription.cancel();
+    autoStartSubscription!.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      const HomePage(),
-      SearchPage(),
-      PlaylistsPage(),
-      const SettingsPage(),
-    ];
+    // final pages = [
+    //   const HomePage(),
+    //   PlaylistsPage(),
+    //   const SettingsPage(),
+    // ];
     return Scaffold(
       bottomNavigationBar: getFooter(),
-      body: ValueListenableBuilder<int>(
-        valueListenable: activeTab,
-        builder: (_, value, __) {
-          return pages[value];
-        },
-      ),
+      body: const HomePage(),
+      // ValueListenableBuilder<int>(
+      //   valueListenable: activeTab,
+      //   builder: (_, value, __) {
+      //     return pages[value];
+      //   },
+      // ),
     );
   }
 
   Widget getFooter() {
-    final items = <BottomNavBarItem>[
-      BottomNavBarItem(
-        icon: const Icon(MdiIcons.homeOutline),
-        activeIcon: const Icon(MdiIcons.home),
-        title: const Text('Home'),
-        activeColor: accent,
-        inactiveColor: Colors.white,
-      ),
-      BottomNavBarItem(
-        icon: const Icon(MdiIcons.magnifyMinusOutline),
-        activeIcon: const Icon(MdiIcons.magnify),
-        title: const Text('Search'),
-        activeColor: accent,
-        inactiveColor: Colors.white,
-      ),
-      BottomNavBarItem(
-        icon: const Icon(MdiIcons.bookOutline),
-        activeIcon: const Icon(MdiIcons.book),
-        title: const Text('Playlists'),
-        activeColor: accent,
-        inactiveColor: Colors.white,
-      ),
-      BottomNavBarItem(
-        icon: const Icon(MdiIcons.cogOutline),
-        activeIcon: const Icon(MdiIcons.cog),
-        title: const Text('Settings'),
-        activeColor: accent,
-        inactiveColor: Colors.white,
-      )
-    ];
+    //   final items = <BottomNavBarItem>[
+    //     BottomNavBarItem(
+    //       icon: const Icon(MdiIcons.homeOutline),
+    //       activeIcon: const Icon(MdiIcons.home),
+    //       title: const Text('Home'),
+    //       activeColor: accent,
+    //       inactiveColor: Colors.white,
+    //     ),
+    //     // BottomNavBarItem(
+    //     //   icon: const Icon(MdiIcons.magnifyMinusOutline),
+    //     //   activeIcon: const Icon(MdiIcons.magnify),
+    //     //   title: const Text('Search'),
+    //     //   activeColor: accent,
+    //     //   inactiveColor: Colors.white,
+    //     // ),
+    //     BottomNavBarItem(
+    //       icon: const Icon(MdiIcons.bookOutline),
+    //       activeIcon: const Icon(MdiIcons.book),
+    //       title: const Text('Playlists'),
+    //       activeColor: accent,
+    //       inactiveColor: Colors.white,
+    //     ),
+    //     BottomNavBarItem(
+    //       icon: const Icon(MdiIcons.cogOutline),
+    //       activeIcon: const Icon(MdiIcons.cog),
+    //       title: const Text('Settings'),
+    //       activeColor: accent,
+    //       inactiveColor: Colors.white,
+    //     )
+    //   ];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -109,6 +146,7 @@ class AppState extends State<Songeet> {
               return const SizedBox();
             }
             final metadata = state!.currentSource!.tag;
+            isSongChanged = true;
             return Container(
               height: 75,
               decoration: BoxDecoration(
@@ -125,7 +163,7 @@ class AppState extends State<Songeet> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AudioApp(),
+                        builder: (context) => const AudioApp(),
                       ),
                     );
                   },
@@ -274,21 +312,21 @@ class AppState extends State<Songeet> {
             );
           },
         ),
-        _buildBottomBar(items),
+        // _buildBottomBar(items),
       ],
     );
   }
 
-  Widget _buildBottomBar(List<BottomNavBarItem> items) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 100),
-      height: 65,
-      child: CustomAnimatedBottomBar(
-        backgroundColor: bgLight,
-        onTap: (index) => activeTab.value = index,
-        items: items,
-        margin: const EdgeInsets.only(left: 8, right: 8),
-      ),
-    );
-  }
+  // Widget _buildBottomBar(List<BottomNavBarItem> items) {
+  //   return AnimatedContainer(
+  //     duration: const Duration(milliseconds: 100),
+  //     height: 65,
+  //     child: CustomAnimatedBottomBar(
+  //       backgroundColor: bgLight,
+  //       onTap: (index) => activeTab.value = index,
+  //       items: items,
+  //       margin: const EdgeInsets.only(left: 8, right: 8),
+  //     ),
+  //   );
+  // }
 }

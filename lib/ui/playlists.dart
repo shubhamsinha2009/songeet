@@ -35,7 +35,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        elevation: 0,
+        // elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(

@@ -7,13 +7,14 @@ import 'package:flutter/material.dart';
 class DelayedDisplay extends StatefulWidget {
   /// DelayedDisplay constructor
   const DelayedDisplay({
+    Key? key,
     required this.child,
     this.delay = Duration.zero,
     this.fadingDuration = const Duration(milliseconds: 800),
     this.slidingCurve = Curves.decelerate,
     this.slidingBeginOffset = const Offset(0, 0.35),
     this.fadeIn = true,
-  });
+  }) : super(key: key);
 
   /// Child that will be displayed with the animation and delay
   final Widget child;

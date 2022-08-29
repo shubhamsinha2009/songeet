@@ -9,6 +9,7 @@ import 'package:songeet/customWidgets/song_bar.dart';
 import 'package:songeet/customWidgets/spinner.dart';
 import 'package:songeet/style/appColors.dart';
 import 'package:songeet/ui/playlist.dart';
+import 'package:songeet/ui/settings.dart';
 import 'package:songeet/ui/voice_search.dart';
 
 import '../services/data_manager.dart';
@@ -51,7 +52,7 @@ class HomePageState extends State<HomePage> {
             fontWeight: FontWeight.w800,
           ),
         ),
-        elevation: 0,
+        // elevation: 0,
         actions: [
           IconButton(
             alignment: Alignment.center,
@@ -59,6 +60,16 @@ class HomePageState extends State<HomePage> {
             icon: const Icon(MdiIcons.magnify),
             onPressed: () =>
                 showSearch(context: context, delegate: MySearchDelegate()),
+          ),
+          IconButton(
+            alignment: Alignment.center,
+            color: accent,
+            icon: const Icon(MdiIcons.cog),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsPage(),
+                )),
           )
         ],
       ),
@@ -214,9 +225,6 @@ class MySearchDelegate extends SearchDelegate {
         return (data as dynamic).data != null
             ? ListView.builder(
                 shrinkWrap: true,
-                addAutomaticKeepAlives: false,
-                addRepaintBoundaries: false,
-                physics: const NeverScrollableScrollPhysics(),
                 itemCount: (data as dynamic).data.length,
                 itemBuilder: (BuildContext ctxt, int index) {
                   return Padding(

@@ -1,5 +1,5 @@
 name: songeet
-version: 1.0.0+1
+version: 1.1.0+2
 publish_to: none
 description: A new Flutter project.
 environment: 
@@ -21,6 +21,7 @@ dependencies:
   just_audio: ^0.9.28
   material_design_icons_flutter: ^5.0.6996
   on_audio_query: ^2.6.1
+  receive_sharing_intent: ^1.4.5
   speech_to_text: ^5.6.1
   url_launcher: ^6.1.5
   youtube_explode_dart: ^1.12.0

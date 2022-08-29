@@ -123,7 +123,6 @@ Future<void> initialisation() async {
       androidNotificationChannelId: 'com.sks.songeet',
       androidNotificationChannelName: 'Songeet',
       androidNotificationOngoing: true,
-      androidNotificationIcon: 'mipmap/launcher_icon',
       androidShowNotificationBadge: true,
     ),
   );

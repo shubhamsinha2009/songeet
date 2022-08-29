@@ -32,7 +32,7 @@ class _UserPlaylistsPageState extends State<UserPlaylistsPage> {
           ),
           onPressed: () => Navigator.pop(context, false),
         ),
-        elevation: 0,
+        // elevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
