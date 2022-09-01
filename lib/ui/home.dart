@@ -1,17 +1,22 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:songeet/API/songeet.dart';
 import 'package:songeet/customWidgets/delayed_display.dart';
 import 'package:songeet/customWidgets/song_bar.dart';
 import 'package:songeet/customWidgets/spinner.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 import 'package:songeet/ui/playlist.dart';
 import 'package:songeet/ui/settings.dart';
 import 'package:songeet/ui/voice_search.dart';
 
+import '../model/play.dart';
+import '../services/audio_manager.dart';
 import '../services/data_manager.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,19 +27,93 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  int selectedIndex = 1;
+  final scrollController = ScrollController(
+      initialScrollOffset: Hive.box('user').get('scroll', defaultValue: 0.0));
+  late StreamSubscription _intentDataStreamSubscription;
+  int selectedIndex =
+      Hive.box('settings').get('selectedIndex', defaultValue: 2) as int;
 
-  final List<Tech> _chipsList = [
-    Tech('Recents', ''),
-    Tech('Trending India', 'PL_yIBWagYVjwNqH1Ay2cnHBgfh2Lu35nd'),
-    Tech('Top Global', 'PL4fGSI1pDJn5kI81J1fYWK5eZRl1zJ5kM'),
-    Tech('Trending India', 'PL_yIBWagYVjwNqH1Ay2cnHBgfh2Lu35nd'),
-    Tech('Top Global', 'PL4fGSI1pDJn5kI81J1fYWK5eZRl1zJ5kM'),
-    Tech('Trending India', 'PL_yIBWagYVjwNqH1Ay2cnHBgfh2Lu35nd'),
-    Tech('Top Global', 'PL4fGSI1pDJn5kI81J1fYWK5eZRl1zJ5kM'),
-    Tech('Trending India', 'PL_yIBWagYVjwNqH1Ay2cnHBgfh2Lu35nd'),
-    Tech('Top Global', 'PL4fGSI1pDJn5kI81J1fYWK5eZRl1zJ5kM'),
-  ];
+  Future<dynamic> getPlay() {
+    if (chipsList.elementAt(selectedIndex).label.compareTo('Recents') == 0) {
+      return getHistoryMusic();
+    } else if (chipsList.elementAt(selectedIndex).label.compareTo('Liked') ==
+        0) {
+      return getFavMusic();
+    } else {
+      return getSongsFromPlaylist(chipsList[selectedIndex].playlistID);
+    }
+    // return _chipsList.elementAt(selectedIndex).label.compareTo('Recents') == 0
+    //     ? getHistoryMusic()
+    //     : get20Music(_chipsList[selectedIndex].playlistID);
+  }
+
+  List chipsList =
+      Hive.box('settings').get('chipsList', defaultValue: playlistChips);
+  @override
+  void initState() {
+    if (chipsList.length < playlistChips.length) {
+      chipsList.addAll(playlistChips.sublist(chipsList.length));
+      addOrUpdateData('settings', 'chipsList', chipsList);
+    }
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStream().listen((String value) {
+      print(value);
+      if (value.contains("https://youtu.be/")) {
+        value = value.replaceAll("https://youtu.be/", "");
+        getSongDetails(1, value).then((value) {
+          playSong(value);
+        });
+      } else if (value.contains("https://youtube.com/playlist?list=")) {
+        // value = value.replaceAll("https://youtube.com/playlist?list=", "");
+        // yt.playlists.get(value).then((value) {
+        //   chipsList.add(
+        //     Tech(value.title, value.id.toString()),
+        //   );
+        //   addOrUpdateData('settings', 'chipsList', chipsList);
+
+        // });
+        // chipsList.add(value);
+      }
+    }, onError: (err) {
+      //print("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((String? value) {
+      if (value != null) {
+        print(value);
+        if (value.contains("https://youtu.be/")) {
+          value = value.replaceAll("https://youtu.be/", "");
+          getSongDetails(1, value).then((value) {
+            playSong(value);
+          });
+        } else if (value.contains("https://youtube.com/playlist?list=")) {
+          //value = value.replaceAll("https://youtube.com/playlist?list=", "");
+          // yt.playlists.get(value).then((value) {
+          //   chipsList.add(
+          //     Tech(value.title, value.id.toString()),
+          //   );
+          //   setState(() {
+          //     selectedIndex = chipsList.length - 1;
+          //   });
+          //   addOrUpdateData('settings', 'chipsList', chipsList);
+          //   addOrUpdateData('settings', 'selectedIndex', selectedIndex);
+
+          // });
+        }
+      }
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _intentDataStreamSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,18 +156,31 @@ class HomePageState extends State<HomePage> {
         children: [
           SizedBox(
             height: 50,
-            child: ListView.builder(
-              itemCount: _chipsList.length,
+            child: ReorderableListView.builder(
+              scrollController: scrollController,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) {
+                    newIndex = newIndex - 1;
+                  }
+
+                  final element = chipsList.removeAt(oldIndex);
+                  chipsList.insert(newIndex, element);
+                });
+                addOrUpdateData('settings', 'chipsList', chipsList);
+              },
+              itemCount: chipsList.length,
               itemBuilder: (context, index) {
                 return Padding(
+                  key: ValueKey(index),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ChoiceChip(
                     visualDensity: VisualDensity.adaptivePlatformDensity,
                     label: Text(
-                      _chipsList[index].label,
+                      chipsList[index].label,
                       style: TextStyle(
                         color: selectedIndex == index ? bgLight : accent,
-                        fontSize: 14,
+                        fontSize: 13,
                         // fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -99,6 +191,8 @@ class HomePageState extends State<HomePage> {
                       setState(() {
                         selectedIndex = index;
                       });
+                      addOrUpdateData('settings', 'selectedIndex', index);
+                      Hive.box('user').put('scroll', scrollController.offset);
                     },
                   ),
                 );
@@ -110,9 +204,7 @@ class HomePageState extends State<HomePage> {
           ),
           Expanded(
             child: FutureBuilder(
-              future: selectedIndex == 0
-                  ? getHistoryMusic()
-                  : get20Music(_chipsList[selectedIndex].playlistID),
+              future: getPlay(),
               builder: (context, data) {
                 if (data.connectionState != ConnectionState.done) {
                   return const Center(
@@ -231,7 +323,7 @@ class MySearchDelegate extends SearchDelegate {
                     padding: const EdgeInsets.only(top: 5, bottom: 5),
                     child: SongBar(
                       (data as dynamic).data[index],
-                      false,
+                      true,
                     ),
                   );
                 },
@@ -371,8 +463,15 @@ class CubeContainer extends StatelessWidget {
   }
 }
 
-class Tech {
-  String label;
-  String playlistID;
-  Tech(this.label, this.playlistID);
-}
+final playlistChips = [
+  Tech('Recents', ''),
+  Tech('Liked', ''),
+  Tech('Trending India', 'PL_yIBWagYVjwNqH1Ay2cnHBgfh2Lu35nd'),
+  Tech('Top Global', 'PL4fGSI1pDJn5kI81J1fYWK5eZRl1zJ5kM'),
+  Tech('90s', 'RDCLAK5uy_kiDNaS5nAXxdzsqFElFKKKs0GUEFJE26w'),
+  Tech('Pop', 'RDCLAK5uy_nmS3YoxSwVVQk9lEQJ0UX4ZCjXsW_psU8'),
+  Tech('Bhakti', 'PL4A029DE14CB39A57'),
+  Tech('Iconic', 'RDCLAK5uy_ne9LK1yhdHJsvZNIsmDirK1WT-sl7q8sQ'),
+  Tech('Ghazal', 'RDCLAK5uy_nusa99pjb23HT86uCZf-JW2rjJIGnpp_g'),
+  Tech('Hip Hop', 'RDCLAK5uy_kw2wIlEv9llILhO0qoMTLsBBhmjzuibAc'),
+];

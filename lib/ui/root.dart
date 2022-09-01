@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 
 import 'package:just_audio/just_audio.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'package:songeet/services/audio_manager.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 import 'package:songeet/ui/home.dart';
 import 'package:songeet/ui/player.dart';
 
-import '../API/songeet.dart';
+import '../services/new_version.dart';
 
 class Songeet extends StatefulWidget {
   const Songeet({Key? key}) : super(key: key);
@@ -27,7 +27,6 @@ class Songeet extends StatefulWidget {
 // ValueNotifier<int> activeTab = ValueNotifier<int>(0);
 
 class AppState extends State<Songeet> {
-  late StreamSubscription _intentDataStreamSubscription;
   StreamSubscription? autoStartSubscription;
   bool isSongChanged = false;
 
@@ -43,43 +42,38 @@ class AppState extends State<Songeet> {
         isSongChanged = false;
       }
     });
-    // For sharing or opening urls/text coming from outside the app while the app is in the memory
-    _intentDataStreamSubscription =
-        ReceiveSharingIntent.getTextStream().listen((String value) {
-      print(value);
-      if (value.contains("https://youtu.be/")) {
-        value = value.replaceAll("https://youtu.be/", "");
-        getSongDetails(1, value).then((value) {
-          playSong(value);
-        });
-      } else if (value.contains("https://youtube.com/playlist?list=")) {
-        // value = value.replaceAll("https://youtube.com/playlist?list=", "");
-        addUserPlaylist(value);
-      }
-    }, onError: (err) {
-      //print("getLinkStream error: $err");
-    });
+    try {
+      final newVersion = NewVersionPlus(androidId: "com.sks.songeet");
 
-    // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.getInitialText().then((String? value) {
-      if (value != null) {
-        print(value);
-        if (value.contains("https://youtu.be/")) {
-          value = value.replaceAll("https://youtu.be/", "");
-          getSongDetails(1, value).then((value) {
-            playSong(value);
-          });
-        } else if (value.contains("https://youtube.com/playlist?list=")) {
-          //value = value.replaceAll("https://youtube.com/playlist?list=", "");
-          addUserPlaylist(value);
-        }
-      }
-    });
+      newVersion.getVersionStatus().then(
+        (status) {
+          if (status != null && (status.localVersion != status.storeVersion)) {
+            newVersion.showUpdateDialog(
+              context: context,
+              versionStatus: status,
+              dialogTitle: 'Update Available',
+              dialogText:
+                  "What's New!\n${status.releaseNotes}\nYou can now update this app from ${status.localVersion} to ${status.storeVersion}",
+            );
+          }
+        },
+      );
+    } catch (e) {
+      // Fluttertoast.showToast(
+      //   backgroundColor: accent,
+      //   textColor: accent != const Color(0xFFFFFFFF)
+      //       ? Colors.white
+      //       : Colors.black,
+      //   msg: "Unable to open App!",
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.BOTTOM,
+      //   fontSize: 14,
+      // );
+    }
   }
 
   @override
   void dispose() {
-    _intentDataStreamSubscription.cancel();
     autoStartSubscription!.cancel();
     super.dispose();
   }
@@ -198,7 +192,7 @@ class AppState extends State<Songeet> {
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
-                                  imageUrl: metadata!.artUri.toString(),
+                                  imageUrl: metadata.artUri.toString(),
                                   fit: BoxFit.fill,
                                   errorWidget: (context, url, error) =>
                                       Container(

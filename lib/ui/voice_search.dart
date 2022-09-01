@@ -4,7 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-import '../style/appColors.dart';
+import '../style/app_colors.dart';
 
 class VoiceSearchPage extends StatefulWidget {
   const VoiceSearchPage({Key? key}) : super(key: key);

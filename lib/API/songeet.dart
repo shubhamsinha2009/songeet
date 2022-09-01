@@ -57,7 +57,7 @@ Future get20Music(dynamic playlistid) async {
   //   await getData('cache', 'playlist10Songs$playlistid') ?? [];
   if (playlistSongs.isEmpty) {
     var index = 0;
-    await for (final song in yt.playlists.getVideos(playlistid).take(20)) {
+    await for (final song in yt.playlists.getVideos(playlistid).take(100)) {
       playlistSongs.add(
         returnSongLayout(
           index,
@@ -107,6 +107,34 @@ Future getHistoryMusic() async {
   // }
 
   return playlistSongs;
+}
+
+Future getFavMusic() async {
+  final List userLikedSongsList = await getData('user', 'likedSongs') ?? [];
+  // if (playlistSongs.isEmpty) {
+  //   var index = 0;
+  //   await for (final song in yt.playlists.getVideos(playlistid).take(20)) {
+  //     playlistSongs.add(
+  //       returnSongLayout(
+  //         index,
+  //         song.id.toString(),
+  //         formatSongTitle(
+  //           song.title.split('-')[song.title.split('-').length - 1],
+  //         ),
+  //         song.thumbnails.standardResUrl,
+  //         song.thumbnails.lowResUrl,
+  //         song.thumbnails.maxResUrl,
+  //         song.author,
+  //         printDuration(song.duration),
+  //       ),
+  //     );
+  //     index += 1;
+  //   }
+
+  //   addOrUpdateData('cache', 'playlist10Songs$playlistid', playlistSongs);
+  // }
+
+  return userLikedSongsList;
 }
 
 String printDuration(Duration? duration) {
@@ -201,8 +229,9 @@ Future<List> searchPlaylist(String query) async {
 }
 
 Future<Map> getRandomSong() async {
-  const playlistId = 'PLFgquLnL59alwzM3kQ6cWhwwZXa4TCjN4';
-  final List playlistSongs = await getSongsFromPlaylist(playlistId);
+  // const playlistId = 'PLFgquLnL59alwzM3kQ6cWhwwZXa4TCjN4';
+  // final List playlistSongs = await getSongsFromPlaylist(playlistId);
+  final List playlistSongs = await getHistoryMusic();
 
   return playlistSongs[random.nextInt(playlistSongs.length)];
 }

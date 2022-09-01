@@ -2,9 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:songeet/API/songeet.dart';
+import 'package:songeet/customWidgets/spinner.dart';
 import 'package:songeet/services/audio_manager.dart';
 
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 
 class SongBar extends StatelessWidget {
   SongBar(this.song, this.moveBackAfterPlay, {super.key});
@@ -21,6 +22,16 @@ class SongBar extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
+          playSong(song);
+          if (activePlaylist.isNotEmpty) {
+            activePlaylist = [];
+            id = 0;
+          }
+          if (moveBackAfterPlay) {
+            Navigator.pop(context);
+          }
+        },
+        onLongPress: () {
           playSong(song);
           if (activePlaylist.isNotEmpty) {
             activePlaylist = [];
@@ -59,6 +70,28 @@ class SongBar extends StatelessWidget {
                   width: 180,
                   height: 101,
                   imageUrl: song['image'].toString(),
+                  placeholder: (context, url) => const Spinner(),
+                  errorWidget: (context, url, error) => Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color.fromARGB(30, 255, 255, 255),
+                          Color.fromARGB(30, 233, 233, 233),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(
+                          MdiIcons.musicNoteOutline,
+                          size: 50,
+                          color: accent,
+                        ),
+                      ],
+                    ),
+                  ),
                   imageBuilder: (context, imageProvider) => DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
@@ -92,6 +125,30 @@ class SongBar extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Align(
+                //   alignment: Alignment.bottomLeft,
+                //   child: Container(
+                //     alignment: Alignment.center,
+                //     height: 20,
+                //     width: 20,
+                //     margin: const EdgeInsets.all(4.0),
+                //     // padding: const EdgeInsets.all(4.0),
+                //     decoration: const BoxDecoration(
+                //       color: Colors.black,
+                //       borderRadius: BorderRadius.all(
+                //         Radius.circular(10),
+                //       ),
+                //     ),
+                //     child: IconButton(
+                //         alignment: Alignment.center,
+                //         color: accent,
+                //         icon: const Icon(MdiIcons.download),
+                //         iconSize: 10,
+                //         splashColor: Colors.transparent,
+                //         onPressed: () => null // downloadSong(song),
+                //         ),
+                //   ),
+                // ),
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(

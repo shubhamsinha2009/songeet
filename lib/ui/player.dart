@@ -10,7 +10,7 @@ import 'package:songeet/customWidgets/spinner.dart';
 
 import 'package:songeet/services/audio_manager.dart';
 
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 String status = 'hidden';
@@ -119,7 +119,7 @@ class AudioAppState extends State<AudioApp> {
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
                                 image: imageProvider,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fill,
                               ),
                             ),
                           ),
@@ -162,7 +162,7 @@ class AudioAppState extends State<AudioApp> {
                             borderRadius: BorderRadius.circular(10),
                             image: DecorationImage(
                               image: imageProvider,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                             ),
                           ),
                         ),

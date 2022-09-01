@@ -38,7 +38,7 @@ MediaItem mapToMediaItem(Map song, String songUrl) {
     artist: song['more_info']['singers'].toString(),
     title: song['title'].toString(),
     artUri: Uri.parse(
-      song['highResImage'].toString(),
+      song['image'].toString(),
     ),
     extras: {
       'url': songUrl,

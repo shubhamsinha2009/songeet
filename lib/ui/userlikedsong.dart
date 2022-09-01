@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:songeet/API/songeet.dart';
 import 'package:songeet/customWidgets/song_bar.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 
 class UserLikedSongs extends StatefulWidget {
   const UserLikedSongs({super.key});

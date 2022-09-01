@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 
 class SettingBar extends StatelessWidget {
   const SettingBar(this.tileName, this.tileIcon, this.onTap, {Key? key})

@@ -9,8 +9,10 @@ import 'package:songeet/helper/material_color_creator.dart';
 
 import 'package:songeet/services/audio_handler.dart';
 import 'package:songeet/services/audio_manager.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 import 'package:songeet/ui/root.dart';
+
+import 'model/play.dart';
 
 GetIt getIt = GetIt.instance;
 bool _interrupted = false;
@@ -18,9 +20,11 @@ bool _interrupted = false;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  Hive.registerAdapter(TechAdapter());
   await Hive.openBox('settings');
   await Hive.openBox('user');
   await Hive.openBox('cache');
+
   await initialisation();
   runApp(const MyApp());
 }
@@ -124,6 +128,7 @@ Future<void> initialisation() async {
       androidNotificationChannelName: 'Songeet',
       androidNotificationOngoing: true,
       androidShowNotificationBadge: true,
+      androidNotificationIcon: "drawable/ic_stat_listening",
     ),
   );
   getIt.registerSingleton<AudioHandler>(audioHandler);

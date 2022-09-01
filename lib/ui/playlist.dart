@@ -7,17 +7,17 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:songeet/API/songeet.dart';
 import 'package:songeet/customWidgets/song_bar.dart';
 import 'package:songeet/customWidgets/spinner.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 
 class PlaylistPage extends StatefulWidget {
   const PlaylistPage({super.key, required this.playlist});
   final dynamic playlist;
 
   @override
-  _PlaylistPageState createState() => _PlaylistPageState();
+  PlaylistPageState createState() => PlaylistPageState();
 }
 
-class _PlaylistPageState extends State<PlaylistPage> {
+class PlaylistPageState extends State<PlaylistPage> {
   final _songsList = [];
 
   bool _isLoading = true;
@@ -59,8 +59,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
   Future<List> fetch() async {
     final list = [];
-    final _count = widget.playlist['list'].length as int;
-    final n = min(_itemsPerPage, _count - _currentPage * _itemsPerPage);
+    final count = widget.playlist['list'].length as int;
+    final n = min(_itemsPerPage, count - _currentPage * _itemsPerPage);
     await Future.delayed(const Duration(seconds: 1), () {
       for (var i = 0; i < n; i++) {
         list.add(widget.playlist['list'][_currentLastLoadedId]);

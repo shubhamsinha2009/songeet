@@ -5,19 +5,21 @@ import 'package:songeet/customWidgets/setting_bar.dart';
 import 'package:songeet/main.dart';
 import 'package:songeet/services/audio_manager.dart';
 import 'package:songeet/services/data_manager.dart';
-import 'package:songeet/style/appColors.dart';
-
+import 'package:songeet/style/app_colors.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:songeet/ui/userlikedsong.dart';
-import 'package:songeet/ui/userPlaylistsPage.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+import '../services/new_version.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
   @override
-  _SettingsPageState createState() => _SettingsPageState();
+  SettingsPageState createState() => SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,25 +227,117 @@ class SettingsCards extends StatelessWidget {
           },
         ),
         SettingBar(
-          "User playlists",
-          MdiIcons.account,
+          "Clear Chips/Tags ",
+          MdiIcons.tag,
           () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const UserPlaylistsPage(),
-              ),
+            deleteData('settings', 'chipsList'),
+            Fluttertoast.showToast(
+              backgroundColor: accent,
+              textColor: accent != const Color(0xFFFFFFFF)
+                  ? Colors.white
+                  : Colors.black,
+              msg: "Chips/Tags cleared!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              fontSize: 14,
             ),
           },
         ),
+        // SettingBar(
+        //   "User playlists",
+        //   MdiIcons.account,
+        //   () => {
+        //     Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => const UserPlaylistsPage(),
+        //       ),
+        //     ),
+        //   },
+        // ),
         SettingBar(
           "User liked songs",
-          MdiIcons.star,
+          MdiIcons.heart,
           () => {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const UserLikedSongs()),
             ),
+          },
+        ),
+
+        SettingBar(
+          'Rate Us',
+          MdiIcons.messageDraw,
+          () async {
+            try {
+              await launchUrlString(
+                  "https://play.google.com/store/apps/details?id=com.sks.books_wallah",
+                  mode: LaunchMode.externalNonBrowserApplication);
+            } catch (e) {
+              Fluttertoast.showToast(
+                backgroundColor: accent,
+                textColor: accent != const Color(0xFFFFFFFF)
+                    ? Colors.white
+                    : Colors.black,
+                msg: "Unable to open App!",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                fontSize: 14,
+              );
+            }
+          },
+        ),
+        SettingBar(
+          'Share Songeet',
+          MdiIcons.share,
+          () => Share.share(
+              " Check Out Songeet -- Listen your favourite youtube video music for free ----  https://play.google.com/store/apps/details?id=com.sks.songeet"),
+        ),
+        SettingBar(
+          'Check For Update',
+          MdiIcons.update,
+          () {
+            try {
+              final newVersion = NewVersionPlus(androidId: "com.sks.songeet");
+
+              newVersion.getVersionStatus().then(
+                (status) {
+                  if (status != null &&
+                      (status.localVersion != status.storeVersion)) {
+                    newVersion.showUpdateDialog(
+                      context: context,
+                      versionStatus: status,
+                      dialogTitle: 'Update Available',
+                      dialogText:
+                          "What's New!\n${status.releaseNotes}\nYou can now update this app from ${status.localVersion} to ${status.storeVersion}",
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                      backgroundColor: accent,
+                      textColor: accent != const Color(0xFFFFFFFF)
+                          ? Colors.white
+                          : Colors.black,
+                      msg: "You have latest version ${status?.localVersion}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      fontSize: 14,
+                    );
+                  }
+                },
+              );
+            } catch (e) {
+              // Fluttertoast.showToast(
+              //   backgroundColor: accent,
+              //   textColor: accent != const Color(0xFFFFFFFF)
+              //       ? Colors.white
+              //       : Colors.black,
+              //   msg: "Unable to open App!",
+              //   toastLength: Toast.LENGTH_SHORT,
+              //   gravity: ToastGravity.BOTTOM,
+              //   fontSize: 14,
+              // );
+            }
           },
         ),
         SettingBar(

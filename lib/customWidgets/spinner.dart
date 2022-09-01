@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:songeet/style/appColors.dart';
+import 'package:songeet/style/app_colors.dart';
 
 class Spinner extends StatelessWidget {
   const Spinner({super.key});
