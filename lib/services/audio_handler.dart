@@ -20,7 +20,9 @@ class MyAudioHandler extends BaseAudioHandler {
 
   Future<void> _loadEmptyPlaylist() async {
     try {
-      await audioPlayer.setAudioSource(_playlist);
+      await audioPlayer.setAudioSource(
+        _playlist,
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -149,7 +151,7 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> addQueueItems(List<MediaItem> mediaItems) async {
     final audioSource = mediaItems.map(_createAudioSource);
     await _playlist.addAll(audioSource.toList());
-
+    // await audioPlayer.setAudioSource(_playlist);
     final newQueue = queue.value..addAll(mediaItems);
     queue.add(newQueue);
   }
@@ -234,7 +236,7 @@ class MyAudioHandler extends BaseAudioHandler {
     if (activePlaylist.isEmpty) {
       await audioPlayer.seekToNext();
     } else {
-      if (id + 1 <= activePlaylist.length) {
+      if (id <= activePlaylist.length) {
         await playSong(activePlaylist[id + 1]);
         id = id + 1;
       }
@@ -290,6 +292,7 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> stop() async {
     await audioPlayer.stop();
+    audioPlayer.dispose();
     return super.stop();
   }
 }

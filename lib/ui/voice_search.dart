@@ -57,9 +57,9 @@ class VoiceSearchPageState extends State<VoiceSearchPage> {
       _lastWords = result.recognizedWords;
     });
 
-    if (_lastWords.isNotEmpty) {
-      Navigator.pop(context, _lastWords);
-    }
+    // if (_lastWords.isNotEmpty) {
+    //   Navigator.pop(context, _lastWords);
+    // }
   }
 
   @override
@@ -76,7 +76,7 @@ class VoiceSearchPageState extends State<VoiceSearchPage> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(context, _lastWords);
                     },
                     alignment: Alignment.center,
                     color: accent,
@@ -107,6 +107,24 @@ class VoiceSearchPageState extends State<VoiceSearchPage> {
                   ),
                 ],
               ),
+            ),
+          ),
+          bottomNavigationBar: ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context, _lastWords);
+            },
+            style: ElevatedButton.styleFrom(
+              primary: accent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              "Search",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18),
             ),
           ),
           floatingActionButtonLocation:

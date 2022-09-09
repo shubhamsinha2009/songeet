@@ -42,9 +42,8 @@ final songeetCoins = ValueNotifier<int>(
   Hive.box('user').get('songeetCoins', defaultValue: 10) as int,
 );
 
-bool get hasNext => activePlaylist.isEmpty
-    ? audioPlayer.hasNext
-    : id + 1 <= activePlaylist.length;
+bool get hasNext =>
+    activePlaylist.isEmpty ? audioPlayer.hasNext : id <= activePlaylist.length;
 
 bool get hasPrevious =>
     activePlaylist.isEmpty ? audioPlayer.hasPrevious : id - 1 >= 0;

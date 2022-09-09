@@ -6,13 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:songeet/API/songeet.dart';
-import 'package:songeet/customWidgets/song_bar.dart';
+import 'package:songeet/customWidgets/playlist_bar.dart';
+
 import 'package:songeet/customWidgets/spinner.dart';
 
 import 'package:songeet/services/audio_manager.dart';
 
 import 'package:songeet/style/app_colors.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+
+import '../services/data_manager.dart';
 
 String status = 'hidden';
 
@@ -571,13 +574,43 @@ class AudioAppState extends State<AudioApp> {
                                         .size
                                         .width *
                                     0.90,
-                                child: ListView.builder(
+                                child: ReorderableListView.builder(
                                   shrinkWrap: true,
+                                  onReorder: (oldIndex, newIndex) {
+                                    setState(() {
+                                      if (newIndex > oldIndex) {
+                                        newIndex = newIndex - 1;
+                                      }
+
+                                      final element =
+                                          activePlaylist.removeAt(oldIndex);
+                                      activePlaylist.insert(newIndex, element);
+                                    });
+                                    addOrUpdateData('user', 'activePlayList',
+                                        activePlaylist);
+                                  },
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: activePlaylist.length,
+                                  header: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Text(
+                                      'Playlist',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w600,
+                                        // fontStyle: FontStyle.italic,
+                                        // overflow: TextOverflow.fade,
+                                        color: accent,
+                                      ),
+                                    ),
+                                  ),
                                   itemBuilder: (context, index) {
-                                    return SongBar(
-                                        activePlaylist, index, false);
+                                    return PlaylistBar(
+                                        key: ValueKey(index),
+                                        activePlaylist,
+                                        index,
+                                        false);
                                   },
                                 ),
                               );

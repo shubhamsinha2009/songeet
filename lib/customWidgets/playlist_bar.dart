@@ -13,8 +13,8 @@ import 'package:songeet/style/app_colors.dart';
 import '../services/audio_manager.dart';
 import '../services/data_manager.dart';
 
-class SongBar extends StatefulWidget {
-  const SongBar(this.list, this.index, this.moveBackAfterPlay, {super.key});
+class PlaylistBar extends StatefulWidget {
+  const PlaylistBar(this.list, this.index, this.moveBackAfterPlay, {super.key});
 
   final dynamic list;
 
@@ -22,10 +22,10 @@ class SongBar extends StatefulWidget {
   final bool moveBackAfterPlay;
 
   @override
-  State<SongBar> createState() => _SongBarState();
+  State<PlaylistBar> createState() => _PlaylistBarState();
 }
 
-class _SongBarState extends State<SongBar> {
+class _PlaylistBarState extends State<PlaylistBar> {
   late final songLikeStatus = ValueNotifier<bool>(
       isSongAlreadyLiked(widget.list[widget.index]['ytid']));
   RewardedInterstitialAd? _rewardedAd;
@@ -71,18 +71,16 @@ class _SongBarState extends State<SongBar> {
 
   void _createRewardedAd() {
     RewardedInterstitialAd.load(
-        adUnitId: "ca-app-pub-7429449747123334/6359496110",
+        adUnitId: "ca-app-pub-7429449747123334/1952744609",
         request: const AdRequest(),
-        rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
-          onAdLoaded: (ad) {
-            if (!mounted) return;
-            setState(() => _rewardedAd = ad);
-          },
-          onAdFailedToLoad: (error) {
-            if (!mounted) return;
-            setState(() => _rewardedAd = null);
-          },
-        ));
+        rewardedInterstitialAdLoadCallback:
+            RewardedInterstitialAdLoadCallback(onAdLoaded: (ad) {
+          if (!mounted) return;
+          setState(() => _rewardedAd = ad);
+        }, onAdFailedToLoad: (error) {
+          if (!mounted) return;
+          setState(() => _rewardedAd = null);
+        }));
   }
 
   @override
@@ -90,7 +88,9 @@ class _SongBarState extends State<SongBar> {
     final song = widget.list[widget.index];
 
     return Container(
-      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 15),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 5, top: 5),
+      color: widget.index != id ? bgColor : Colors.red,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
@@ -107,209 +107,80 @@ class _SongBarState extends State<SongBar> {
             Navigator.pop(context);
           }
         },
-        onLongPress: () {
-          activePlaylist.insert(id + 1, song);
-          addOrUpdateData('user', 'activePlayList', activePlaylist);
-          Fluttertoast.showToast(
-            backgroundColor: accent,
-            textColor: Colors.black,
-            msg: "Added to queue",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            fontSize: 14,
-          );
-        },
-        onDoubleTap: () {
-          if (songLikeStatus.value == true) {
-            removeUserLikedSong(song['ytid']);
-            songLikeStatus.value = false;
-          } else {
-            addUserLikedSong(song['ytid']);
-            songLikeStatus.value = true;
-          }
-        },
         splashColor: accent.withOpacity(0.4),
         hoverColor: accent.withOpacity(0.4),
         focusColor: accent.withOpacity(0.4),
         highlightColor: accent.withOpacity(0.4),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Container(
-              width: 180,
-              height: 101,
+              width: 100,
+              height: 50,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 shape: BoxShape.rectangle,
               ),
-              child: Stack(children: [
-                CachedNetworkImage(
-                  width: 180,
-                  height: 101,
-                  imageUrl: song['image'].toString(),
-                  placeholder: (context, url) => const Spinner(),
-                  errorWidget: (context, url, error) => Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color.fromARGB(30, 255, 255, 255),
-                          Color.fromARGB(30, 233, 233, 233),
-                        ],
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          MdiIcons.musicNoteOutline,
-                          size: 50,
-                          color: accent,
-                        ),
+              child: CachedNetworkImage(
+                alignment: Alignment.center,
+                width: 100,
+                height: 50,
+                imageUrl: song['image'].toString(),
+                placeholder: (context, url) => const Spinner(),
+                errorWidget: (context, url, error) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(30, 255, 255, 255),
+                        Color.fromARGB(30, 233, 233, 233),
                       ],
                     ),
                   ),
-                  imageBuilder: (context, imageProvider) => DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        MdiIcons.musicNoteOutline,
+                        size: 30,
+                        color: accent,
                       ),
+                    ],
+                  ),
+                ),
+                imageBuilder: (context, imageProvider) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    margin: const EdgeInsets.all(4.0),
-                    padding: const EdgeInsets.all(4.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      song['duration'],
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                // Align(
-                //   alignment: Alignment.bottomLeft,
-                //   child: Container(
-                //     alignment: Alignment.center,
-                //     height: 20,
-                //     width: 20,
-                //     margin: const EdgeInsets.all(4.0),
-                //     // padding: const EdgeInsets.all(4.0),
-                //     decoration: const BoxDecoration(
-                //       color: Colors.black,
-                //       borderRadius: BorderRadius.all(
-                //         Radius.circular(10),
-                //       ),
-                //     ),
-                //     child: IconButton(
-                //         alignment: Alignment.center,
-                //         color: accent,
-                //         icon: const Icon(MdiIcons.download),
-                //         iconSize: 10,
-                //         splashColor: Colors.transparent,
-                //         onPressed: () => null // downloadSong(song),
-                //         ),
-                //   ),
-                // ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    alignment: Alignment.center,
-                    height: 30,
-                    width: 30,
-                    margin: const EdgeInsets.all(4.0),
-                    // padding: const EdgeInsets.all(4.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(10),
-                      ),
-                    ),
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: songLikeStatus,
-                      builder: (_, value, __) {
-                        if (value == true) {
-                          return IconButton(
-                            alignment: Alignment.center,
-                            color: accent,
-                            icon: const Icon(MdiIcons.heart),
-                            iconSize: 15,
-                            splashColor: Colors.transparent,
-                            onPressed: () => {
-                              removeUserLikedSong(song['ytid']),
-                              songLikeStatus.value = false
-                            },
-                          );
-                        } else {
-                          return IconButton(
-                            alignment: Alignment.center,
-                            color: accent,
-                            icon: const Icon(MdiIcons.heartOutline),
-                            iconSize: 15,
-                            splashColor: Colors.transparent,
-                            onPressed: () => {
-                              addUserLikedSong(song['ytid']),
-                              songLikeStatus.value = true
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ]),
+              ),
             ),
             Flexible(
               child: Container(
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.only(left: 15),
-                height: 101,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      // overflow: TextOverflow.ellipsis,
-                      (song['title'])
-                          .toString()
-                          .split('(')[0]
-                          .replaceAll('&quot;', '"')
-                          .replaceAll('&amp;', '&'),
-                      maxLines: 2,
+                height: 50,
+                child: Text(
+                  // overflow: TextOverflow.ellipsis,
+                  (song['title'])
+                      .toString()
+                      .split('(')[0]
+                      .replaceAll('&quot;', '"')
+                      .replaceAll('&amp;', '&'),
+                  maxLines: 2,
 
-                      style: TextStyle(
-                        color: accent,
-                        // fontSize: 16,
-                        // fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      //  overflow: TextOverflow.ellipsis,
-                      song['more_info']['singers'].toString(),
-                      maxLines: 2,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        // fontWeight: FontWeight.w400,
-                        // fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  style: TextStyle(
+                    color: accent,
+
+                    // fontSize: 16,
+                    // fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),

@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.0.11
   receive_sharing_intent: ^1.4.5
   share_plus: ^4.0.10+1
+  simple_connection_checker: ^0.2.1
   speech_to_text: ^5.6.1
   url_launcher: ^6.1.5
   youtube_explode_dart: ^1.12.0

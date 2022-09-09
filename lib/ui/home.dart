@@ -7,7 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:songeet/API/songeet.dart';
-
+import 'package:simple_connection_checker/simple_connection_checker.dart';
 import 'package:songeet/customWidgets/song_bar.dart';
 import 'package:songeet/customWidgets/spinner.dart';
 import 'package:songeet/style/app_colors.dart';
@@ -34,6 +34,9 @@ class HomePageState extends State<HomePage> {
   int selectedIndex =
       Hive.box('settings').get('selectedIndex', defaultValue: 2) as int;
   RewardedInterstitialAd? _rewardedAd;
+  StreamSubscription? subscription;
+  final SimpleConnectionChecker _simpleConnectionChecker =
+      SimpleConnectionChecker();
 
   Future<dynamic> getPlay() {
     if (chipsList.elementAt(selectedIndex).label.compareTo('Recents') == 0) {
@@ -136,13 +139,27 @@ class HomePageState extends State<HomePage> {
     });
 
     _createRewardedAd();
-
+    subscription =
+        _simpleConnectionChecker.onConnectionChange.listen((connected) {
+      if (!connected) {
+        Fluttertoast.showToast(
+          backgroundColor: accent,
+          textColor: Colors.black,
+          msg: "No Internet",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          fontSize: 14,
+        );
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
     _intentDataStreamSubscription.cancel();
+
+    subscription?.cancel();
     super.dispose();
   }
 
@@ -369,14 +386,15 @@ class HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: bgLight,
+        backgroundColor: accent,
 
         label: Text(
           "Search",
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: accent,
+            color: bgLight,
           ),
         ),
         //foregroundColor: accent.withOpacity(0.3),
@@ -384,7 +402,7 @@ class HomePageState extends State<HomePage> {
             showSearch(context: context, delegate: MySearchDelegate()),
         icon: Icon(
           MdiIcons.magnify,
-          color: accent,
+          color: bgLight,
         ),
       ),
       body: Column(
@@ -569,9 +587,22 @@ class HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _showRewardedAd();
-
-                    Navigator.pop(context, false);
+                    SimpleConnectionChecker.isConnectedToInternet()
+                        .then((isConnected) {
+                      if (isConnected) {
+                        _showRewardedAd();
+                      } else {
+                        Fluttertoast.showToast(
+                          backgroundColor: accent,
+                          textColor: Colors.black,
+                          msg: "No Internet",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          fontSize: 14,
+                        );
+                      }
+                      Navigator.pop(context, false);
+                    });
                   },
                   style: ElevatedButton.styleFrom(
                     primary: accent,
@@ -579,12 +610,10 @@ class HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "Watch Rewarded Ads to get more coins",
                     style: TextStyle(
-                      color: accent != const Color(0xFFFFFFFF)
-                          ? Colors.white
-                          : Colors.black,
+                      color: Colors.black,
                     ),
                   ),
                 ),

@@ -26,7 +26,7 @@ List playlists = [];
 // List userPlaylists = Hive.box('user').get('playlists', defaultValue: []);
 List userLikedSongsList = Hive.box('user').get('likedSongs', defaultValue: []);
 //List suggestedPlaylists = [];
-List activePlaylist = [];
+List activePlaylist = Hive.box('user').get('ativePlayList', defaultValue: []);
 List<SongModel> localSongs = [];
 
 int id = 0;
@@ -273,6 +273,7 @@ Future<void> setActivePlaylist(List plist, int index) async {
     ];
 
     await MyAudioHandler().addQueueItems(activeTempPlaylist);
+
     playSong(activePlaylist[id]);
     //  play();
   } else {
