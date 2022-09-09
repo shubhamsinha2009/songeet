@@ -7,7 +7,6 @@ import 'package:songeet/services/audio_manager.dart';
 import 'package:songeet/services/data_manager.dart';
 import 'package:songeet/style/app_colors.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:songeet/ui/userlikedsong.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../services/new_version.dart';
@@ -255,16 +254,16 @@ class SettingsCards extends StatelessWidget {
         //     ),
         //   },
         // ),
-        SettingBar(
-          "User liked songs",
-          MdiIcons.heart,
-          () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UserLikedSongs()),
-            ),
-          },
-        ),
+        // SettingBar(
+        //   "User liked songs",
+        //   MdiIcons.heart,
+        //   () => {
+        //     Navigator.push(
+        //       context,
+        //       MaterialPageRoute(builder: (context) => const UserLikedSongs()),
+        //     ),
+        //   },
+        // ),
 
         SettingBar(
           'Rate Us',
@@ -272,7 +271,7 @@ class SettingsCards extends StatelessWidget {
           () async {
             try {
               await launchUrlString(
-                  "https://play.google.com/store/apps/details?id=com.sks.books_wallah",
+                  "https://play.google.com/store/apps/details?id=com.sks.songeet",
                   mode: LaunchMode.externalNonBrowserApplication);
             } catch (e) {
               Fluttertoast.showToast(

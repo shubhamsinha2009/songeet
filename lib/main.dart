@@ -100,6 +100,7 @@ class MyAppState extends State<MyApp> {
 
 Future<void> initialisation() async {
   final session = await AudioSession.instance;
+
   await session.configure(const AudioSessionConfiguration.music());
   session.interruptionEventStream.listen((event) {
     if (event.begin) {
@@ -132,5 +133,6 @@ Future<void> initialisation() async {
     ),
   );
   getIt.registerSingleton<AudioHandler>(audioHandler);
+
   await enableBooster();
 }

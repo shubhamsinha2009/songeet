@@ -35,9 +35,8 @@ class VoiceSearchPageState extends State<VoiceSearchPage> {
   /// Each time to start a speech recognition session
   void _startListening() async {
     await speechToText.listen(
-        onResult: _onSpeechResult,
-        listenFor: const Duration(seconds: 10),
-        pauseFor: const Duration(seconds: 5));
+      onResult: _onSpeechResult,
+    );
 
     setState(() {});
   }

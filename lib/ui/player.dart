@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:songeet/API/songeet.dart';
+import 'package:songeet/customWidgets/song_bar.dart';
 import 'package:songeet/customWidgets/spinner.dart';
 
 import 'package:songeet/services/audio_manager.dart';
@@ -327,8 +328,7 @@ class AudioAppState extends State<AudioApp> {
                           padding: EdgeInsets.zero,
                           icon: Icon(
                             MdiIcons.shuffle,
-                            color:
-                                shuffleNotifier.value ? accent : Colors.white,
+                            color: shuffleNotifier.value ? accent : Colors.grey,
                           ),
                           iconSize: size.width * 0.056,
                           onPressed: changeShuffleStatus,
@@ -410,7 +410,7 @@ class AudioAppState extends State<AudioApp> {
                           padding: EdgeInsets.zero,
                           icon: Icon(
                             MdiIcons.repeat,
-                            color: repeatNotifier.value ? accent : Colors.white,
+                            color: repeatNotifier.value ? accent : Colors.grey,
                           ),
                           iconSize: size.width * 0.056,
                           onPressed: changeLoopStatus,
@@ -485,23 +485,27 @@ class AudioAppState extends State<AudioApp> {
                         if (value == true) {
                           return IconButton(
                             color: accent,
-                            icon: const Icon(MdiIcons.star),
-                            iconSize: size.width * 0.056,
+                            icon: const Icon(MdiIcons.heart),
+                            iconSize: size.width * 0.08,
                             splashColor: Colors.transparent,
-                            onPressed: () => {
-                              removeUserLikedSong(ytid),
-                              songLikeStatus.value = false
+                            onPressed: () {
+                              setState(() {
+                                removeUserLikedSong(ytid);
+                                songLikeStatus.value = false;
+                              });
                             },
                           );
                         } else {
                           return IconButton(
                             color: Colors.white,
-                            icon: const Icon(MdiIcons.starOutline),
-                            iconSize: size.width * 0.056,
+                            icon: const Icon(MdiIcons.heartOutline),
+                            iconSize: size.width * 0.08,
                             splashColor: Colors.transparent,
-                            onPressed: () => {
-                              addUserLikedSong(ytid),
-                              songLikeStatus.value = true
+                            onPressed: () {
+                              setState(() {
+                                addUserLikedSong(ytid);
+                                songLikeStatus.value = true;
+                              });
                             },
                           );
                         }
@@ -518,7 +522,7 @@ class AudioAppState extends State<AudioApp> {
                                 : MdiIcons.skipNextCircleOutline,
                             color: value ? accent : Colors.white,
                           ),
-                          iconSize: size.width * 0.056,
+                          iconSize: size.width * 0.08,
                           splashColor: Colors.transparent,
                           onPressed: changeAutoPlayNextStatus,
                         );
@@ -540,17 +544,44 @@ class AudioAppState extends State<AudioApp> {
                     //   },
                     // ),
                     IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: Icon(
-                        sponsorBlockSupport.value
-                            ? MdiIcons.playCircle
-                            : MdiIcons.playCircleOutline,
-                        color: Colors.white,
-                      ),
-                      iconSize: size.width * 0.056,
-                      splashColor: Colors.transparent,
-                      onPressed: () => setState(changeSponsorBlockStatus),
-                    ),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          MdiIcons.playlistMusic,
+                          color: Colors.white,
+                        ),
+                        iconSize: size.width * 0.08,
+                        splashColor: Colors.transparent,
+                        onPressed: () => showModalBottomSheet(
+                            isScrollControlled: true,
+                            isDismissible: true,
+                            backgroundColor: Colors.transparent,
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: bgColor,
+                                ),
+                                height: MediaQuery.of(context)
+                                        .copyWith()
+                                        .size
+                                        .height *
+                                    0.80,
+                                width: MediaQuery.of(context)
+                                        .copyWith()
+                                        .size
+                                        .width *
+                                    0.90,
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount: activePlaylist.length,
+                                  itemBuilder: (context, index) {
+                                    return SongBar(
+                                        activePlaylist, index, false);
+                                  },
+                                ),
+                              );
+                            })),
                   ],
                 ),
               ),

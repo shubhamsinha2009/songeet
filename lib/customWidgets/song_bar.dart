@@ -1,43 +1,112 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:songeet/API/songeet.dart';
 import 'package:songeet/customWidgets/spinner.dart';
-import 'package:songeet/services/audio_manager.dart';
 
 import 'package:songeet/style/app_colors.dart';
 
-class SongBar extends StatelessWidget {
-  SongBar(this.song, this.moveBackAfterPlay, {super.key});
+import '../services/audio_manager.dart';
 
-  late final dynamic song;
-  late final bool moveBackAfterPlay;
-  late final songLikeStatus =
-      ValueNotifier<bool>(isSongAlreadyLiked(song['ytid']));
+class SongBar extends StatefulWidget {
+  const SongBar(this.list, this.index, this.moveBackAfterPlay, {super.key});
+
+  final dynamic list;
+
+  final int index;
+  final bool moveBackAfterPlay;
+
+  @override
+  State<SongBar> createState() => _SongBarState();
+}
+
+class _SongBarState extends State<SongBar> {
+  late final songLikeStatus = ValueNotifier<bool>(
+      isSongAlreadyLiked(widget.list[widget.index]['ytid']));
+  RewardedInterstitialAd? _rewardedAd;
+
+  @override
+  void initState() {
+    _createRewardedAd();
+    super.initState();
+  }
+
+  void _showRewardedAd() {
+    if (songeetCoins.value < 40) {
+      if (_rewardedAd != null) {
+        _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            _createRewardedAd();
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            _createRewardedAd();
+          },
+        );
+        _rewardedAd!.show(
+          onUserEarnedReward: (ad, reward) {
+            setState(() {
+              songeetCoins.value = songeetCoins.value + reward.amount as int;
+              Hive.box('user').put('songeetCoins', songeetCoins.value);
+            });
+          },
+        );
+        _rewardedAd = null;
+      } else {
+        if (songeetCoins.value < 5) {
+          setState(() {
+            songeetCoins.value = songeetCoins.value + 5;
+            Hive.box('user').put('songeetCoins', songeetCoins.value);
+          });
+        }
+      }
+    }
+  }
+
+  void _createRewardedAd() {
+    RewardedInterstitialAd.load(
+        adUnitId: "ca-app-pub-7429449747123334/1952744609",
+        request: const AdRequest(),
+        rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
+          onAdLoaded: (ad) => setState(() => _rewardedAd = ad),
+          onAdFailedToLoad: (error) => setState(() => _rewardedAd = null),
+        ));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final song = widget.list[widget.index];
+
     return Container(
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 15),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          playSong(song);
-          if (activePlaylist.isNotEmpty) {
-            activePlaylist = [];
-            id = 0;
+          if (songeetCoins.value > 0) {
+            setActivePlaylist(widget.list, widget.index);
+            songeetCoins.value = songeetCoins.value - 1;
+            Hive.box('user').put('songeetCoins', songeetCoins.value);
+          } else {
+            coinBottomSheet(context);
           }
-          if (moveBackAfterPlay) {
+
+          if (widget.moveBackAfterPlay) {
             Navigator.pop(context);
           }
         },
         onLongPress: () {
-          playSong(song);
-          if (activePlaylist.isNotEmpty) {
-            activePlaylist = [];
-            id = 0;
+          if (songeetCoins.value > 0) {
+            setActivePlaylist(widget.list, widget.index);
+            songeetCoins.value = songeetCoins.value - 1;
+            Hive.box('user').put('songeetCoins', songeetCoins.value);
+          } else {
+            coinBottomSheet(context);
           }
-          if (moveBackAfterPlay) {
+
+          if (widget.moveBackAfterPlay) {
             Navigator.pop(context);
           }
         },
@@ -198,42 +267,41 @@ class SongBar extends StatelessWidget {
               ]),
             ),
             Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(left: 15),
-                    child: Text(
+              child: Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 15),
+                height: 101,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
                       // overflow: TextOverflow.ellipsis,
                       (song['title'])
                           .toString()
                           .split('(')[0]
                           .replaceAll('&quot;', '"')
                           .replaceAll('&amp;', '&'),
+                      maxLines: 2,
+
                       style: TextStyle(
                         color: accent,
                         // fontSize: 16,
                         // fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: Text(
+                    Text(
                       //  overflow: TextOverflow.ellipsis,
                       song['more_info']['singers'].toString(),
+                      maxLines: 2,
                       style: const TextStyle(
                         color: Colors.white70,
                         // fontWeight: FontWeight.w400,
                         // fontSize: 14,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // Row(
@@ -273,6 +341,111 @@ class SongBar extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<dynamic> coinBottomSheet(BuildContext context) {
+    return showModalBottomSheet(
+      isDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(20),
+              ),
+            ),
+            height: MediaQuery.of(context).copyWith().size.height * 0.80,
+            width: MediaQuery.of(context).copyWith().size.width * 0.90,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Songeet Coins',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Chip(
+                  backgroundColor: accent.withOpacity(0.2),
+                  label: ValueListenableBuilder(
+                      valueListenable: songeetCoins,
+                      builder: (context, value, child) {
+                        return Text(
+                          '$value',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: accent,
+                            fontSize: 30,
+                          ),
+                        );
+                      }),
+                  avatar: Icon(
+                    MdiIcons.alphaSCircle,
+                    color: accent,
+                    size: 33,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Number of Songeet Coins\n = \nNumber of Songs you can play',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Not have enough coins to play songs?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _showRewardedAd();
+
+                    Navigator.pop(context, false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Watch Rewarded Ads to get more coins",
+                    style: TextStyle(
+                      color: accent != const Color(0xFFFFFFFF)
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ));
+      },
     );
   }
 }
